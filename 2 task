@@ -1,28 +1,53 @@
 (1)
 def find_pythagorean_triples(n):
     triples = []
+    # Перебираємо всі можливі значення для a, b, c
     for a in range(1, n+1):
-        for b in range(a, n+1):
-            c = (a**2 + b**2) ** 0.5
-            if c.is_integer() and c <= n:
-                triples.append((a, b, int(c)))
+        for b in range(a, n+1):  # b починається з a, щоб уникнути повторень (a, b) і (b, a)
+            for c in range(b, n+1):  # c починається з b, щоб уникнути повторень
+                if a**2 + b**2 == c**2:
+                    triples.append((a, b, c))
     return triples
 
-n = 20
-print(find_pythagorean_triples(n))
+# Введення числа n
+n = int(input("Введіть число n: "))
+
+# Знаходимо всі пітівські трійки
+result = find_pythagorean_triples(n)
+
+# Виводимо результат
+if result:
+    print("Знайдені пітівські трійки:")
+    for triple in result:
+        print(triple)
+else:
+    print("Пітівські трійки не знайдено.")
+
 
 
 (2)
 def pascal_triangle(n):
-    triangle = [[1] * (i + 1) for i in range(n)]
-    for i in range(2, n):
+    triangle = []  # Список для зберігання трикутника
+    
+    # Створення кожного ряду трикутника
+    for i in range(n):
+        row = [1] * (i + 1)  # Початковий рядок з одиниць
+        
+        # Заповнення внутрішніх елементів
         for j in range(1, i):
-            triangle[i][j] = triangle[i-1][j-1] + triangle[i-1][j]
-    return triangle
+            row[j] = triangle[i - 1][j - 1] + triangle[i - 1][j]
+        
+        triangle.append(row)  # Додаємо рядок до трикутника
+    
+    # Виведення трикутника
+    for row in triangle:
+        print(" ".join(map(str, row)).center(n * 2))  # Виведення рядка з центруванням
 
-n = 5
-for row in pascal_triangle(n):
-    print(row)
+# Введення числа n
+n = int(input("Введіть кількість рядків трикутника Паскаля: "))
+
+# Побудова і виведення трикутника
+pascal_triangle(n)
 
 
 
@@ -43,104 +68,401 @@ print(sieve(1000))
 (4)
 def prime_factors(n):
     factors = []
-    d = 2
-    while d * d <= n:
-        while n % d == 0:
-            factors.append(d)
-            n //= d
-        d += 1
-    if n > 1:
+    
+    # Перевіряємо на простий множник 2
+    while n % 2 == 0:
+        factors.append(2)
+        n //= 2
+    
+    # Перевіряємо на прості множники непарні числа від 3 до √n
+    for i in range(3, int(n**0.5) + 1, 2):
+        while n % i == 0:
+            factors.append(i)
+            n //= i
+    
+    # Якщо після всіх перевірок n більше 2, то це просте число
+    if n > 2:
         factors.append(n)
+    
     return factors
 
-print(prime_factors(250))
+# Введення числа
+n = int(input("Введіть число для розкладу на прості множники: "))
+
+# Розкладаємо на прості множники
+factors = prime_factors(n)
+
+# Виводимо результат
+print(f"{n} = {', '.join(map(str, factors))}")
+
 
 
 
 (5)
-def is_palindrome(n):
-    return str(n) == str(n)[::-1]
+def is_palindrome(number):
+    """Перевірка, чи є число паліндромом."""
+    s = str(number)
+    return s == s[::-1]
 
-palindromes = [x for x in range(1, 100) if is_palindrome(x) and is_palindrome(x**2)]
-print(palindromes)
+def find_palindromic_squares():
+    result = []
+    # Перебираємо числа від 1 до 100
+    for num in range(1, 101):
+        if is_palindrome(num):
+            square = num ** 2
+            if is_palindrome(square):
+                result.append((num, square))
+    return result
+
+# Отримуємо результати
+palindromic_numbers = find_palindromic_squares()
+
+# Виводимо знайдені числа та їх квадрати
+print("Знайдені паліндроми (число, квадрат):")
+for num, square in palindromic_numbers:
+    print(f"{num}^2 = {square}")
+
 
 
 
 (6)
-import inflect
-p = inflect.engine()
-
 def number_to_words(n):
-    return p.number_to_words(n, lang='uk')
+    # Массиви для основних чисел
+    ones = ["", "один", "два", "три", "чотири", "п’ять", "шість", "сім", "вісім", "дев’ять", "десять", 
+            "одинадцять", "дванадцять", "тринадцять", "чотирнадцять", "п’ятнадцять", "шістнадцять", 
+            "сімнадцять", "вісімнадцять", "дев’ятнадцять"]
+    
+    tens = ["", "", "двадцять", "тридцять", "сорок", "п’ятдесят", "шістдесят", "сімдесят", "вісімдесят", "дев’яносто"]
+    
+    hundreds = ["", "сто", "двісті", "триста", "чотириста", "п’ятсот", "шістсот", "сімсот", "вісімсот", "дев’ятсот"]
+    
+    if n == 1000:
+        return "тисяча"
+    
+    words = []
+    
+    # Перевіряємо сотні
+    if n >= 100:
+        h = n // 100
+        words.append(hundreds[h])
+        n %= 100
+    
+    # Перевіряємо десятки та одиниці
+    if n >= 20:
+        t = n // 10
+        words.append(tens[t])
+        n %= 10
+    
+    if 0 < n < 20:
+        words.append(ones[n])
+    elif n == 0 and not words:
+        words.append("нуль")
+    
+    return " ".join(words).capitalize()
 
-print(number_to_words(123))
+# Тестування
+n = int(input("Введіть число (n ≤ 1000): "))
+print(number_to_words(n))
+
 
 
 
 (7)
-def twin_primes(n):
-    primes = sieve(2*n)
-    return [(p, p+2) for p in primes if p+2 in primes and p >= n]
+def sieve_of_eratosthenes(limit):
+    """Повертає список булевих значень для чисел від 0 до limit,
+    де True означає, що число є простим."""
+    sieve = [True] * (limit + 1)
+    sieve[0] = sieve[1] = False  # 0 та 1 не є простими
+    for i in range(2, int(limit**0.5) + 1):
+        if sieve[i]:
+            for j in range(i*i, limit + 1, i):
+                sieve[j] = False
+    return sieve
 
-print(twin_primes(10))
+def find_twin_primes(n):
+    # Створюємо решето для чисел до 2n
+    limit = 2 * n
+    sieve = sieve_of_eratosthenes(limit)
+    
+    twin_primes = []
+    # Перебираємо прості числа між n та 2n
+    for i in range(n, limit - 1):  # перевіряємо до 2n - 2, оскільки шукаємо пару i та i+2
+        if sieve[i] and i + 2 <= limit and sieve[i + 2]:
+            twin_primes.append((i, i + 2))
+    
+    return twin_primes
+
+# Введення числа n
+n = int(input("Введіть число n: "))
+
+# Знаходимо та виводимо всі пари простих чисел з різницею 2 в інтервалі [n, 2n]
+pairs = find_twin_primes(n)
+
+print(f"Пари простих чисел з різницею 2 в інтервалі [{n}, {2*n}]:")
+if pairs:
+    for a, b in pairs:
+        print(f"{a}, {b}")
+else:
+    print("Не знайдено жодної пари.")
+
 
 
 
 (8)
-import textwrap
+def format_text(text, n):
+    # Розділяємо текст на абзаци
+    paragraphs = text.split('\n\n')
+    
+    formatted_text = []
+    
+    for paragraph in paragraphs:
+        # Розбиваємо абзац на слова
+        words = paragraph.split()
+        
+        # Поточний рядок, в який будемо додавати слова
+        current_line = ""
+        
+        for word in words:
+            # Якщо поточний рядок плюс слово не перевищує максимальну ширину, додаємо слово
+            if len(current_line) + len(word) + (1 if current_line else 0) <= n:
+                if current_line:
+                    current_line += " " + word
+                else:
+                    current_line = word
+            else:
+                # Якщо рядок перевищує ширину, додаємо його до відформатованого тексту
+                formatted_text.append(current_line)
+                # Починаємо новий рядок з поточного слова
+                current_line = word
+        
+        # Додаємо останній сформований рядок в абзаці
+        if current_line:
+            formatted_text.append(current_line)
+        
+        # Додаємо два символи нового рядка для кожного абзацу
+        formatted_text.append("")  # Додає один абзацний розрив
 
-def format_text(text, width):
-    return "\n\n".join(textwrap.fill(para, width) for para in text.split("\n\n"))
+    # З'єднуємо всі частини і повертаємо відформатований текст
+    return '\n'.join(formatted_text).strip()
 
-text = "Тестовий текст, який потрібно відформатувати."
-print(format_text(text, 50))
+# Приклад введення
+text = """Це приклад тексту, який ми хочемо відредагувати так, щоб його ширина була не більше n символів.
+Ми розіб'ємо його на слова і перенесемо ці слова в нові рядки, зберігаючи абзаци.
+
+Наприклад, для ширини 50 символів, кожен рядок не перевищуватиме цієї довжини."""
+
+n = 50  # Максимальна ширина рядка
+
+# Виводимо відредагований текст
+formatted_text = format_text(text, n)
+print(formatted_text)
+
 
 
 
 (9)
-def encode_message(text, message):
-    binary_message = ''.join(f'{ord(c):08b}' for c in message)
-    words = text.split()
-    encoded_text = words[0]
+import re
+import sys
+import textwrap
 
-    for i, bit in enumerate(binary_message):
-        encoded_text += (" " if bit == '0' else "  ") + words[i + 1]
+def encode_message(cover_text, secret_message):
+    """
+    Зашифровує секретне повідомлення в тексті.
+    
+    cover_text: рядок – текст‑«обкладинка».
+    secret_message: рядок – повідомлення, яке потрібно приховати.
+    
+    Повертає новий текст, де між першими gap_count = 8*len(secret_message)
+    парами слів пробіл(и) замінені відповідно до бітів повідомлення:
+      - якщо біт = '0' → 1 пробіл;
+      - якщо біт = '1' → 2 пробіли.
+    Інші розриви між словами залишаються по 1 пробілу.
+    """
+    # Розбиваємо текст на слова (при цьому оригінальні пробіли не зберігаються)
+    words = cover_text.split()
+    gaps_total = len(words) - 1
+    bits_needed = len(secret_message) * 8
 
+    if gaps_total < bits_needed:
+        raise ValueError(f"Не вистачає слів для зашифрування повідомлення. "
+                         f"Потрібно хоча б {bits_needed + 1} слів, а знайдено {len(words)}.")
+
+    # Формуємо рядок бітів для секретного повідомлення (8 біт на символ)
+    bits = ""
+    for ch in secret_message:
+        bits += format(ord(ch), '08b')  # наприклад, 'A' -> '01000001'
+
+    # Формуємо новий текст, змінюючи тільки перші bits_needed розривів між словами
+    encoded_text = ""
+    gap_index = 0
+    for i, word in enumerate(words):
+        encoded_text += word
+        # Якщо не останнє слово, додаємо пробільний розрив
+        if i < len(words) - 1:
+            if gap_index < bits_needed:
+                # Якщо біт = '0' – один пробіл, інакше (біт '1') – два пробіли
+                if bits[gap_index] == '0':
+                    encoded_text += " "
+                else:
+                    encoded_text += "  "
+                gap_index += 1
+            else:
+                # Для решти розривів стандартно – один пробіл
+                encoded_text += " "
     return encoded_text
 
-def decode_message(encoded_text):
-    words = encoded_text.split()
-    binary_message = ''.join('0' if words[i] == words[i-1] else '1' for i in range(1, len(words)))
-    message = ''.join(chr(int(binary_message[i:i+8], 2)) for i in range(0, len(binary_message), 8))
-    return message
+def decode_message(stego_text, num_chars):
+    """
+    Розшифровує секретне повідомлення з тексту, в якому воно було зашифроване.
+    
+    stego_text: текст, у якому закодовано повідомлення.
+    num_chars: кількість символів секретного повідомлення.
+    
+    Функція аналізує пробільні розриви між словами. Перші 8*num_chars розривів
+    інтерпретуються: 1 пробіл → '0', 2 (або більше) пробілів → '1'.
+    Потім кожні 8 біт перетворюються у символ згідно ASCII.
+    """
+    # За допомогою регулярного виразу отримуємо послідовність: слово, пробіли, слово, пробіли, ...
+    tokens = re.split(r'(\s+)', stego_text)
+    # Отримуємо всі пробільні розриви, що знаходяться між словами (вони розташовані зазвичай на непарних позиціях)
+    gaps = tokens[1::2]
+    
+    bits = ""
+    # Аналізуємо лише перші num_chars*8 розривів (якщо їх менше, то повідомлення не повне)
+    for gap in gaps[:num_chars * 8]:
+        # Якщо кількість пробілів рівна 1, інтерпретуємо як '0', якщо 2 або більше – як '1'
+        if gap.count(" ") == 1:
+            bits += "0"
+        else:
+            bits += "1"
+    
+    secret_message = ""
+    # Розбиваємо рядок бітів на блоки по 8 біт і перетворюємо їх у символи
+    for i in range(0, len(bits), 8):
+        byte = bits[i:i+8]
+        if len(byte) < 8:
+            break
+        secret_message += chr(int(byte, 2))
+    
+    return secret_message
 
-text = "Це простий текст для приховування повідомлення."
-message = "hi"
-encoded = encode_message(text, message)
-print(encoded)
-print(decode_message(encoded))
+# --- Демонстрація роботи програми ---
+
+if __name__ == '__main__':
+    # Приклад: зчитування тексту-«обкладинки» (можна ввести з консолі або задати рядок)
+    cover_text = ("Це приклад тексту, в якому буде приховано секретне повідомлення. "
+                  "Ми використовуємо простий метод стеганографії, що базується на розміщенні "
+                  "додаткових пробілів між словами. Цей текст має достатню кількість слів, "
+                  "щоб можна було зашифрувати декілька символів. Спробуйте знайти приховане повідомлення!")
+    
+    # Введення секретного повідомлення (наприклад, "Hello")
+    secret_message = input("Введіть секретне повідомлення для зашифрування: ")
+    
+    try:
+        # Зашифровуємо повідомлення в тексті
+        stego_text = encode_message(cover_text, secret_message)
+        print("\nТекст з прихованим повідомленням:")
+        print(textwrap.fill(stego_text, width=80))
+    except ValueError as ve:
+        print("Помилка:", ve)
+        sys.exit(1)
+    
+    # Для демонстрації розшифрування просимо ввести кількість символів повідомлення,
+    # або можемо використати довжину secret_message, якщо це відомо
+    num_chars = len(secret_message)
+    decoded_message = decode_message(stego_text, num_chars)
+    
+    print("\nРозшифроване повідомлення:")
+    print(decoded_message)
 
 
 
 (10)
-from itertools import combinations_with_replacement
+import itertools
 
-def magic_vectors(n):
-    results = []
-    for combo in combinations_with_replacement(range(1, 10), n):
-        if sum(combo) == eval('*'.join(map(str, combo))):
-            results.append(combo)
-    return results
+def is_magic_vector(vector):
+    """
+    Перевіряє, чи є вектор чарівним:
+    - Сума елементів повинна дорівнювати їх добутку.
+    """
+    return sum(vector) == prod(vector)
 
-print(magic_vectors(5))
+def prod(lst):
+    """
+    Обчислює добуток елементів списку.
+    """
+    result = 1
+    for num in lst:
+        result *= num
+    return result
+
+def find_magic_vectors(n):
+    """
+    Знаходить всі чарівні вектори довжиною n.
+    """
+    # Генеруємо всі можливі варіанти чисел від 1 до n
+    candidates = list(itertools.combinations_with_replacement(range(1, n + 1), n))
+    
+    magic_vectors = []
+    for candidate in candidates:
+        if is_magic_vector(candidate):
+            magic_vectors.append(candidate)
+    
+    return magic_vectors
+
+# Введення числа N
+N = int(input("Введіть N (довжина чарівного вектора): "))
+
+# Знайдемо всі чарівні вектори для заданого N
+magic_vectors = find_magic_vectors(N)
+
+print(f"Чарівні вектори для N = {N}:")
+for vector in magic_vectors:
+    print(vector)
+
 
 
 
 (11)
 def find_capital(cities):
-    x_sorted = sorted(x for x, y in cities)
-    y_sorted = sorted(y for x, y in cities)
-    return x_sorted[len(x_sorted) // 2], y_sorted[len(y_sorted) // 2]
+    """
+    cities - список кортежів (x, y) координат міст.
+    Функція повертає координати столиці, що мінімізують суму відстаней.
+    """
+    n = len(cities)
+    # Витягуємо окремо координати x та y
+    xs = sorted([x for x, y in cities])
+    ys = sorted([y for x, y in cities])
+    
+    # Для непарної кількості міст медіана – це елемент посередині.
+    # Для парної кількості міст будь-яке значення між двома центральними елементами дає мінімум.
+    # Для простоти вибираємо один із них (наприклад, лівий).
+    if n % 2 == 1:
+        med_x = xs[n // 2]
+        med_y = ys[n // 2]
+    else:
+        med_x = xs[n // 2 - 1]
+        med_y = ys[n // 2 - 1]
+    
+    return med_x, med_y
 
-cities = [(1, 2), (3, 4), (5, 6), (7, 8)]
-print(find_capital(cities))
+if __name__ == '__main__':
+    # Зчитування даних. Припустимо, спочатку вводиться кількість міст, а далі N рядків з координатами.
+    try:
+        N = int(input("Введіть кількість міст N: "))
+    except ValueError:
+        print("Будь ласка, введіть ціле число.")
+        exit(1)
+    
+    cities = []
+    print("Введіть координати міст (x y), по одному місту в рядку:")
+    for i in range(N):
+        try:
+            x, y = map(int, input(f"Місто {i+1}: ").split())
+            cities.append((x, y))
+        except ValueError:
+            print("Будь ласка, введіть два цілі числа, розділених пробілом.")
+            exit(1)
+    
+    capital = find_capital(cities)
+    print(f"\nОптимальні координати столиці: {capital[0]}, {capital[1]}")
