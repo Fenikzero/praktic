@@ -1,0 +1,87 @@
+**Після запуску треба додати 2-3 книги а так все працює я перевіряла**
+
+
+def print_menu():
+    print("\nМеню бібліотеки:")
+    print("1. Додати книгу")
+    print("2. Відобразити всі книги")
+    print("3. Знайти книгу за автором")
+    print("4. Знайти книгу за назвою")
+    print("5. Видалити книгу")
+    print("6. Вийти")
+
+def add_book(book_list):
+    title = input("Введіть назву книги: ")
+    author = input("Введіть автора книги: ")
+    year = input("Введіть рік видання: ")
+    isbn = input("Введіть ISBN книги: ")
+    book = {"title": title, "author": author, "year": year, "isbn": isbn}
+    book_list.append(book)
+    print("Книгу успішно додано до бібліотеки!")
+
+def display_books(book_list):
+    if not book_list:
+        print("Бібліотека порожня!")
+        return
+    print("\nСписок книг у бібліотеці:")
+    for index, book in enumerate(book_list, 1):
+        print(f"{index}. Назва: {book['title']}, Автор: {book['author']}, Рік: {book['year']}, ISBN: {book['isbn']}")
+
+def search_by_author(book_list):
+    search = input("Введіть ім'я автора для пошуку: ").lower()
+    results = [book for book in book_list if search in book['author'].lower()]
+    if results:
+        print("\nЗнайдені книги:")
+        for book in results:
+            print(f"Назва: {book['title']}, Автор: {book['author']}, Рік: {book['year']}, ISBN: {book['isbn']}")
+    else:
+        print("Книг від цього автора не знайдено.")
+
+def search_by_title(book_list):
+    search = input("Введіть назву книги для пошуку: ").lower()
+    results = [book for book in book_list if search in book['title'].lower()]
+    if results:
+        print("\nЗнайдені книги:")
+        for book in results:
+            print(f"Назва: {book['title']}, Автор: {book['author']}, Рік: {book['year']}, ISBN: {book['isbn']}")
+    else:
+        print("Книг з цією назвою не знайдено.")
+
+def delete_book(book_list):
+    display_books(book_list)
+    if not book_list:
+        return
+    try:
+        index = int(input("Введіть номер книги, яку потрібно видалити: "))
+        if 1 <= index <= len(book_list):
+            removed_book = book_list.pop(index - 1)
+            print(f"Книгу '{removed_book['title']}' успішно видалено з бібліотеки!")
+        else:
+            print("Невірний номер книги!")
+    except ValueError:
+        print("Будь ласка, введіть коректне число.")
+
+def main():
+    book_list = []
+    while True:
+        print_menu()
+        choice = input("Виберіть опцію: ")
+        if choice == '1':
+            add_book(book_list)
+        elif choice == '2':
+            display_books(book_list)
+        elif choice == '3':
+            search_by_author(book_list)
+        elif choice == '4':
+            search_by_title(book_list)
+        elif choice == '5':
+            delete_book(book_list)
+        elif choice == '6':
+            print("Вихід з програми...")
+            break
+        else:
+            print("Невірний вибір! Спробуйте ще раз.")
+
+if __name__ == "__main__":
+    main()
+
