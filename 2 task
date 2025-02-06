@@ -1,0 +1,146 @@
+(1)
+def find_pythagorean_triples(n):
+    triples = []
+    for a in range(1, n+1):
+        for b in range(a, n+1):
+            c = (a**2 + b**2) ** 0.5
+            if c.is_integer() and c <= n:
+                triples.append((a, b, int(c)))
+    return triples
+
+n = 20
+print(find_pythagorean_triples(n))
+
+
+(2)
+def pascal_triangle(n):
+    triangle = [[1] * (i + 1) for i in range(n)]
+    for i in range(2, n):
+        for j in range(1, i):
+            triangle[i][j] = triangle[i-1][j-1] + triangle[i-1][j]
+    return triangle
+
+n = 5
+for row in pascal_triangle(n):
+    print(row)
+
+
+
+(3)
+def sieve(n):
+    primes = [True] * (n+1)
+    primes[0] = primes[1] = False
+    for i in range(2, int(n**0.5) + 1):
+        if primes[i]:
+            for j in range(i*i, n+1, i):
+                primes[j] = False
+    return [i for i, is_prime in enumerate(primes) if is_prime]
+
+print(sieve(1000))
+
+
+
+(4)
+def prime_factors(n):
+    factors = []
+    d = 2
+    while d * d <= n:
+        while n % d == 0:
+            factors.append(d)
+            n //= d
+        d += 1
+    if n > 1:
+        factors.append(n)
+    return factors
+
+print(prime_factors(250))
+
+
+
+(5)
+def is_palindrome(n):
+    return str(n) == str(n)[::-1]
+
+palindromes = [x for x in range(1, 100) if is_palindrome(x) and is_palindrome(x**2)]
+print(palindromes)
+
+
+
+(6)
+import inflect
+p = inflect.engine()
+
+def number_to_words(n):
+    return p.number_to_words(n, lang='uk')
+
+print(number_to_words(123))
+
+
+
+(7)
+def twin_primes(n):
+    primes = sieve(2*n)
+    return [(p, p+2) for p in primes if p+2 in primes and p >= n]
+
+print(twin_primes(10))
+
+
+
+(8)
+import textwrap
+
+def format_text(text, width):
+    return "\n\n".join(textwrap.fill(para, width) for para in text.split("\n\n"))
+
+text = "Тестовий текст, який потрібно відформатувати."
+print(format_text(text, 50))
+
+
+
+(9)
+def encode_message(text, message):
+    binary_message = ''.join(f'{ord(c):08b}' for c in message)
+    words = text.split()
+    encoded_text = words[0]
+
+    for i, bit in enumerate(binary_message):
+        encoded_text += (" " if bit == '0' else "  ") + words[i + 1]
+
+    return encoded_text
+
+def decode_message(encoded_text):
+    words = encoded_text.split()
+    binary_message = ''.join('0' if words[i] == words[i-1] else '1' for i in range(1, len(words)))
+    message = ''.join(chr(int(binary_message[i:i+8], 2)) for i in range(0, len(binary_message), 8))
+    return message
+
+text = "Це простий текст для приховування повідомлення."
+message = "hi"
+encoded = encode_message(text, message)
+print(encoded)
+print(decode_message(encoded))
+
+
+
+(10)
+from itertools import combinations_with_replacement
+
+def magic_vectors(n):
+    results = []
+    for combo in combinations_with_replacement(range(1, 10), n):
+        if sum(combo) == eval('*'.join(map(str, combo))):
+            results.append(combo)
+    return results
+
+print(magic_vectors(5))
+
+
+
+(11)
+def find_capital(cities):
+    x_sorted = sorted(x for x, y in cities)
+    y_sorted = sorted(y for x, y in cities)
+    return x_sorted[len(x_sorted) // 2], y_sorted[len(y_sorted) // 2]
+
+cities = [(1, 2), (3, 4), (5, 6), (7, 8)]
+print(find_capital(cities))
