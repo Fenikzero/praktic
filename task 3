@@ -1,87 +1,123 @@
-**Після запуску треба додати 2-3 книги а так все працює я перевіряла**
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
+# Підключення до бази даних SQLite
+DATABASE_URL = "sqlite:///./library.db"
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-def print_menu():
-    print("\nМеню бібліотеки:")
-    print("1. Додати книгу")
-    print("2. Відобразити всі книги")
-    print("3. Знайти книгу за автором")
-    print("4. Знайти книгу за назвою")
-    print("5. Видалити книгу")
-    print("6. Вийти")
+# Модель таблиці "Книги"
+class Book(Base):
+    __tablename__ = "books"
 
-def add_book(book_list):
-    title = input("Введіть назву книги: ")
-    author = input("Введіть автора книги: ")
-    year = input("Введіть рік видання: ")
-    isbn = input("Введіть ISBN книги: ")
-    book = {"title": title, "author": author, "year": year, "isbn": isbn}
-    book_list.append(book)
-    print("Книгу успішно додано до бібліотеки!")
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    author = Column(String, index=True)
+    year = Column(Integer)
+    isbn = Column(String, unique=True, index=True)
 
-def display_books(book_list):
-    if not book_list:
-        print("Бібліотека порожня!")
-        return
-    print("\nСписок книг у бібліотеці:")
-    for index, book in enumerate(book_list, 1):
-        print(f"{index}. Назва: {book['title']}, Автор: {book['author']}, Рік: {book['year']}, ISBN: {book['isbn']}")
+# Створення таблиці в БД
+Base.metadata.create_all(bind=engine)
 
-def search_by_author(book_list):
-    search = input("Введіть ім'я автора для пошуку: ").lower()
-    results = [book for book in book_list if search in book['author'].lower()]
-    if results:
-        print("\nЗнайдені книги:")
-        for book in results:
-            print(f"Назва: {book['title']}, Автор: {book['author']}, Рік: {book['year']}, ISBN: {book['isbn']}")
-    else:
-        print("Книг від цього автора не знайдено.")
+# Ініціалізація FastAPI
+app = FastAPI()
 
-def search_by_title(book_list):
-    search = input("Введіть назву книги для пошуку: ").lower()
-    results = [book for book in book_list if search in book['title'].lower()]
-    if results:
-        print("\nЗнайдені книги:")
-        for book in results:
-            print(f"Назва: {book['title']}, Автор: {book['author']}, Рік: {book['year']}, ISBN: {book['isbn']}")
-    else:
-        print("Книг з цією назвою не знайдено.")
+# Модель для запитів на додавання книги
+class BookCreate(BaseModel):
+    title: str
+    author: str
+    year: int
+    isbn: str
 
-def delete_book(book_list):
-    display_books(book_list)
-    if not book_list:
-        return
+# Отримання всіх книг
+@app.get("/books/")
+def get_books():
+    db = SessionLocal()
+    books = db.query(Book).all()
+    db.close()
+    return books
+
+# Додавання нової книги
+@app.post("/books/")
+def create_book(book: BookCreate):
+    db = SessionLocal()
+    
+    # Перевірка, чи існує ISBN
+    existing_book = db.query(Book).filter(Book.isbn == book.isbn).first()
+    if existing_book:
+        db.close()
+        raise HTTPException(status_code=400, detail="Книга з таким ISBN вже існує!")
+
+    new_book = Book(title=book.title, author=book.author, year=book.year, isbn=book.isbn)
+    db.add(new_book)
+    db.commit()
+    db.refresh(new_book)
+    db.close()
+    return new_book
+
+# Отримання книги за ID
+@app.get("/books/{book_id}")
+def get_book(book_id: int):
+    db = SessionLocal()
+    book = db.query(Book).filter(Book.id == book_id).first()
+    db.close()
+    if book is None:
+        raise HTTPException(status_code=404, detail="Книгу не знайдено")
+    return book
+
+# Видалення книги за ID
+@app.delete("/books/{book_id}")
+def delete_book(book_id: int):
+    db = SessionLocal()
+    book = db.query(Book).filter(Book.id == book_id).first()
+    if book is None:
+        db.close()
+        raise HTTPException(status_code=404, detail="Книгу не знайдено")
+    
+    db.delete(book)
+    db.commit()
+    db.close()
+    return {"message": "Книгу успішно видалено!"}
+
+from contextlib import contextmanager
+
+@contextmanager
+def get_db():
+    db = SessionLocal()
     try:
-        index = int(input("Введіть номер книги, яку потрібно видалити: "))
-        if 1 <= index <= len(book_list):
-            removed_book = book_list.pop(index - 1)
-            print(f"Книгу '{removed_book['title']}' успішно видалено з бібліотеки!")
-        else:
-            print("Невірний номер книги!")
-    except ValueError:
-        print("Будь ласка, введіть коректне число.")
+        yield db
+    finally:
+        db.close()
 
-def main():
-    book_list = []
-    while True:
-        print_menu()
-        choice = input("Виберіть опцію: ")
-        if choice == '1':
-            add_book(book_list)
-        elif choice == '2':
-            display_books(book_list)
-        elif choice == '3':
-            search_by_author(book_list)
-        elif choice == '4':
-            search_by_title(book_list)
-        elif choice == '5':
-            delete_book(book_list)
-        elif choice == '6':
-            print("Вихід з програми...")
-            break
-        else:
-            print("Невірний вибір! Спробуйте ще раз.")
+# Приклад використання get_db
+@app.get("/books/")
+def get_books():
+    with get_db() as db:
+        books = db.query(Book).all()
+    return books
 
-if __name__ == "__main__":
-    main()
+from pydantic import BaseModel
+
+class BookResponse(BaseModel):
+    id: int
+    title: str
+    author: str
+    year: int
+    isbn: str
+
+    class Config:
+        orm_mode = True
+
+from fastapi import Depends
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
